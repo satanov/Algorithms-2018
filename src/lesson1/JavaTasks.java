@@ -2,6 +2,11 @@ package lesson1;
 
 import kotlin.NotImplementedError;
 
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 @SuppressWarnings("unused")
 public class JavaTasks {
     /**
@@ -33,7 +38,20 @@ public class JavaTasks {
      * В случае обнаружения неверного формата файла бросить любое исключение.
      */
     static public void sortTimes(String inputName, String outputName) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName);
+             PrintWriter out = new PrintWriter(outputName)) {
+
+            Scanner sc = new Scanner(in);
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            List<Date> dates = new ArrayList<>();
+            while (sc.hasNext()) {
+                dates.add(sdf.parse(sc.next()));
+            }
+            Collections.sort(dates);
+            dates.forEach(date -> out.println(sdf.format(date)));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Exception while reading file", e);
+        }
     }
 
     /**
