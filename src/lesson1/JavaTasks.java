@@ -40,7 +40,6 @@ public class JavaTasks {
     static public void sortTimes(String inputName, String outputName) {
         try (FileInputStream in = new FileInputStream(inputName);
              PrintWriter out = new PrintWriter(outputName)) {
-
             Scanner sc = new Scanner(in);
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             List<Date> dates = new ArrayList<>();
