@@ -3,7 +3,8 @@ package lesson2;
 import kotlin.NotImplementedError;
 import kotlin.Pair;
 
-import java.util.Set;
+import java.io.FileInputStream;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class JavaAlgorithms {
@@ -32,7 +33,57 @@ public class JavaAlgorithms {
      * В случае обнаружения неверного формата файла бросить любое исключение.
      */
     static public Pair<Integer, Integer> optimizeBuyAndSell(String inputName) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName)) {
+
+            Scanner sc = new Scanner(in);
+            List<Integer> seq = new ArrayList<>();
+            while (sc.hasNext()) {
+                seq.add(sc.nextInt());
+            }
+            int quantity = seq.size();
+            int[] maxForPos = new int[quantity];
+            int[] maxPos = new int[quantity];
+            int[] minForPos = new int[quantity];
+            int[] minPos = new int[quantity];
+            int j;
+            for (int i = 0; i < quantity; ++i) {
+                j = quantity - i - 1;
+                if (i == 0) {
+                    minForPos[i] = seq.get(i);
+                    minPos[i] = i;
+                    maxForPos[j] = seq.get(j);
+                    maxPos[j] = j;
+                } else {
+                    if (seq.get(i) < minForPos[i - 1]) {
+                        minForPos[i] = seq.get(i);
+                        minPos[i] = i;
+                    } else {
+                        minForPos[i] = minForPos[i - 1];
+                        minPos[i] = minPos[i - 1];
+                    }
+                    if (seq.get(j) > maxForPos[j + 1]) {
+                        maxForPos[j] = seq.get(j);
+                        maxPos[j] = j;
+                    } else {
+                        maxForPos[j] = maxForPos[j + 1];
+                        maxPos[j] = maxPos[j + 1];
+                    }
+                }
+            }
+            int dif = -1;
+            int difPos = -1;
+            for (int i = 0; i < quantity; ++i) {
+                int curDif = maxForPos[i] - minForPos[i];
+                if (curDif > dif) {
+                    dif = curDif;
+                    difPos = i;
+                }
+            }
+
+            return new Pair<Integer, Integer>(minPos[difPos] + 1, maxPos[difPos] + 1);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Exception while reading file", e);
+        }
     }
 
     /**
@@ -82,7 +133,10 @@ public class JavaAlgorithms {
      * Х х Х
      */
     static public int josephTask(int menNumber, int choiceInterval) {
-        throw new NotImplementedError();
+        int result = 0;
+        for (int i = 1; i <= menNumber; ++i)
+            result = (result + choiceInterval) % i;
+        return result + 1;
     }
 
     /**
@@ -96,8 +150,40 @@ public class JavaAlgorithms {
      * Если имеется несколько самых длинных общих подстрок одной длины,
      * вернуть ту из них, которая встречается раньше в строке first.
      */
-    static public String longestCommonSubstring(String firs, String second) {
-        throw new NotImplementedError();
+    static public String longestCommonSubstring(String first, String second) {
+
+        int[][] subStringMatrix = new int[first.length() + 1][second.length() + 1];
+
+        int subStringLength = 0;
+        int row = 0;
+        int column = 0;
+
+        for (int i = 0; i <= first.length(); i++) {
+            for (int j = 0; j <= second.length(); j++) {
+                if (i != 0 && j != 0 && first.charAt(i - 1) == second.charAt(j - 1)) {
+                    subStringMatrix[i][j] = subStringMatrix[i - 1][j - 1] + 1;
+                    if (subStringLength < subStringMatrix[i][j]) {
+                        subStringLength = subStringMatrix[i][j];
+                        row = i;
+                        column = j;
+                    }
+                } else {
+                    subStringMatrix[i][j] = 0;
+                }
+            }
+        }
+
+        StringBuilder subStr = new StringBuilder();
+        if (subStringLength != 0) {
+            while (subStringMatrix[row][column] != 0) {
+                subStr.append(first.charAt(row - 1));
+                subStringLength--;
+                row--;
+                column--;
+            }
+
+        }
+        return subStr.reverse().toString();
     }
 
     /**
@@ -111,7 +197,27 @@ public class JavaAlgorithms {
      * Единица простым числом не считается.
      */
     static public int calcPrimesNumber(int limit) {
-        throw new NotImplementedError();
+        if (limit <= 1) {
+            return 0;
+        }
+        boolean[] numbers = new boolean[limit + 1];
+        for (int i = 2; i < limit + 1; ++i) {
+            numbers[i] = true;
+        }
+        for (int i = 2; i < numbers.length; ++i) {
+            if (numbers[i]) {
+                for (int j = 2; i * j < numbers.length; ++j) {
+                    numbers[i * j] = false;
+                }
+            }
+        }
+        int counter = 0;
+        for (int i = 2; i < limit + 1; ++i) {
+            if (numbers[i]) {
+                counter++;
+            }
+        }
+        return counter;
     }
 
     /**
@@ -141,6 +247,65 @@ public class JavaAlgorithms {
      * Остальные символы ни в файле, ни в словах не допускаются.
      */
     static public Set<String> baldaSearcher(String inputName, Set<String> words) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName)) {
+            Scanner sc = new Scanner(in);
+
+            List<String> rows = new ArrayList<>();
+            while (sc.hasNext()) {
+                rows.add(sc.nextLine());
+            }
+
+            int qRows = rows.size();
+            int qCols = rows.get(0).split(" ").length;
+            char[][] table = new char[qRows][qCols];
+            for (int i = 0; i < qRows; ++i) {
+                String[] chars = rows.get(i).split(" ");
+                for (int j = 0; j < qCols; ++j) {
+                    table[i][j] = chars[j].charAt(0);
+                }
+            }
+
+            Set<String> result = new HashSet<>();
+            words.forEach(word -> {
+                for (int i = 0; i < qRows; ++i) {
+                    for (int j = 0; j < qCols; ++j) {
+                        if (tryNext(table, word, 0, i, j)) {
+                            result.add(word);
+                            return;
+                        }
+                    }
+                }
+            });
+            return result;
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    static private boolean tryNext(char[][] table, String word, int wordInx, int i, int j) {
+        if (wordInx == word.length()) {
+            return true;
+        }
+        char curChar = word.charAt(wordInx);
+        if (table[i][j] != curChar) {
+            return false;
+        } else {
+            boolean left = false, top = false, right = false, bot = false;
+            int qRows = table.length;
+            int qCols = table[0].length;
+            if (j > 0) {
+                left = tryNext(table, word, wordInx + 1, i, j - 1);
+            }
+            if (j < qCols - 1) {
+                right = tryNext(table, word, wordInx + 1, i, j + 1);
+            }
+            if (i > 0) {
+                bot = tryNext(table, word, wordInx + 1, i - 1, j);
+            }
+            if (i < qRows - 1) {
+                top = tryNext(table, word, wordInx + 1, i + 1, j);
+            }
+            return left || top || right || bot;
+        }
     }
 }
