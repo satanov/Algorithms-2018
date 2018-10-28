@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class JavaTasks {
@@ -80,7 +81,35 @@ public class JavaTasks {
      * В случае обнаружения неверного формата файла бросить любое исключение.
      */
     static public void sortAddresses(String inputName, String outputName) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName);
+             PrintWriter out = new PrintWriter(outputName)) {
+
+            Scanner sc = new Scanner(in);
+            Map<String, List<String>> addressMap = new HashMap<>();
+            String addressInfo;
+            String[] addressParts;
+
+            while (sc.hasNext()) {
+                addressInfo = sc.nextLine();
+                addressParts = addressInfo.split("-");
+                if (addressParts.length != 2) {
+                    throw new IllegalArgumentException();
+                }
+                String currentAddress = addressParts[1].trim();
+                List<String> people = addressMap.getOrDefault(currentAddress, new ArrayList<>());
+                if (people.isEmpty()) {
+                    addressMap.put(currentAddress, people);
+                }
+                people.add(addressParts[0].trim());
+            }
+            addressMap.keySet().stream().sorted().forEach(address -> {
+                String people = addressMap.get(address).stream().sorted().collect(Collectors.joining(", "));
+                out.println(address + " - " + people);
+            });
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Exception while reading file", e);
+        }
     }
 
     /**
@@ -114,7 +143,21 @@ public class JavaTasks {
      * 121.3
      */
     static public void sortTemperatures(String inputName, String outputName) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName);
+             PrintWriter out = new PrintWriter(outputName)) {
+
+            Scanner sc = new Scanner(in);
+            List<Double> list = new ArrayList<>();
+            String tmp;
+            Double temperature;
+            while (sc.hasNext()) {
+                list.add(sc.nextDouble());
+            }
+            Collections.sort(list);
+            list.forEach(out::println);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Exception while reading file", e);
+        }
     }
 
     /**
@@ -147,7 +190,37 @@ public class JavaTasks {
      * 2
      */
     static public void sortSequence(String inputName, String outputName) {
-        throw new NotImplementedError();
+        try (FileInputStream in = new FileInputStream(inputName);
+             PrintWriter out = new PrintWriter(outputName)) {
+
+            Scanner sc = new Scanner(in);
+            List<Integer> seq = new ArrayList<>();
+            Map<Integer, Integer> map = new HashMap<>();
+            Integer maxCount = 0;
+            Integer maxValue = -1;
+            while (sc.hasNext()) {
+                Integer cur = sc.nextInt();
+                seq.add(cur);
+                Integer count = map.getOrDefault(cur, 0) + 1;
+                if (maxCount < count || (maxCount.equals(count) && cur < maxValue)) {
+                    maxCount = count;
+                    maxValue = cur;
+                }
+                map.put(cur, count);
+            }
+
+            Integer finalMaxValue = maxValue;
+            seq.forEach(el -> {
+                if (!el.equals(finalMaxValue)) {
+                    out.println(el);
+                }
+            });
+            for (int i = 0; i < maxCount; ++i) {
+                out.println(finalMaxValue);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Exception while reading file", e);
+        }
     }
 
     /**
@@ -165,6 +238,23 @@ public class JavaTasks {
      * Результат: second = [1 3 4 9 9 13 15 20 23 28]
      */
     static <T extends Comparable<T>> void mergeArrays(T[] first, T[] second) {
-        throw new NotImplementedError();
+        int firstPointer = 0;
+        int secondPointer = first.length;
+
+        for (int i = 0; i < second.length; ++i) {
+            if (firstPointer == first.length) {
+                continue;
+            }
+            if (secondPointer == second.length) {
+                second[i] = first[firstPointer++];
+                continue;
+            }
+            if (first[firstPointer].compareTo(second[secondPointer]) < 0) {
+                second[i] = first[firstPointer++];
+            } else {
+                second[i] = second[secondPointer++];
+            }
+        }
+        Arrays.stream(second).forEach(System.out::println);
     }
 }
