@@ -148,10 +148,10 @@ public class JavaTasks {
 
             Scanner sc = new Scanner(in);
             List<Double> list = new ArrayList<>();
-            String tmp;
             Double temperature;
             while (sc.hasNext()) {
-                list.add(sc.nextDouble());
+                temperature = Double.parseDouble(sc.nextLine());
+                list.add(temperature);
             }
             Collections.sort(list);
             list.forEach(out::println);
