@@ -66,8 +66,56 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
      */
     @Override
     public boolean remove(Object o) {
-        // TODO
-        throw new NotImplementedError();
+        T val = (T) o;
+        if (isEmpty() || find(val) == null) {
+            return false;
+        }
+        root = remove(root, val);
+        size--;
+        return true;
+    }
+
+    private Node<T> remove(Node<T> cur, T val)
+    {
+        Node<T> p, p2, n;
+        if (cur.value.compareTo(val) == 0)
+        {
+            Node<T> lt, rt;
+            lt = cur.left;
+            rt = cur.right;
+            if (lt == null && rt == null)
+                return null;
+            else if (lt == null)
+            {
+                p = rt;
+                return p;
+            }
+            else if (rt == null)
+            {
+                p = lt;
+                return p;
+            }
+            else
+            {
+                p2 = rt;
+                p = rt;
+                while (p.left != null)
+                    p = p.left;
+                p.left  = lt;
+                return p2;
+            }
+        }
+        if (val.compareTo(cur.value) < 0)
+        {
+            n = remove(cur.left, val);
+            cur.left = n;
+        }
+        else
+        {
+            n = remove(cur.right, val);
+            cur.right = n;
+        }
+        return cur;
     }
 
     @Override
@@ -100,28 +148,45 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
 
     public class BinaryTreeIterator implements Iterator<T> {
 
-        private Node<T> current = null;
+        Stack<Node<T>> stack;
+        Node<T> current;
 
-        private BinaryTreeIterator() {}
+        private BinaryTreeIterator() {
+            Node<T> cur = BinaryTree.this.root;
+            stack = new Stack<>();
+            while (cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            }
+        }
 
         /**
          * Поиск следующего элемента
          * Средняя
          */
         private Node<T> findNext() {
-            // TODO
-            throw new NotImplementedError();
+            current = stack.pop();
+            Node<T> node = current;
+            if (node.right != null) {
+                node = node.right;
+                while (node != null) {
+                    stack.push(node);
+                    node = node.left;
+                }
+            }
+            return current;
         }
 
         @Override
         public boolean hasNext() {
-            return findNext() != null;
+            return !stack.isEmpty();
         }
 
         @Override
         public T next() {
-            current = findNext();
-            if (current == null) throw new NoSuchElementException();
+            Node<T> current = findNext();
+            if (current == null)
+                throw new NoSuchElementException();
             return current.value;
         }
 
@@ -131,8 +196,7 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
          */
         @Override
         public void remove() {
-            // TODO
-            throw new NotImplementedError();
+            BinaryTree.this.remove(current.value);
         }
     }
 
@@ -172,7 +236,11 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     @NotNull
     @Override
     public SortedSet<T> headSet(T toElement) {
-        // TODO
+        SortedSet<T> result = new TreeSet<>();
+        Node<T> cur = root;
+        while (cur != null) {
+
+        }
         throw new NotImplementedError();
     }
 
