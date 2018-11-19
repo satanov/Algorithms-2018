@@ -236,12 +236,38 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     @NotNull
     @Override
     public SortedSet<T> headSet(T toElement) {
-        SortedSet<T> result = new TreeSet<>();
-        Node<T> cur = root;
-        while (cur != null) {
+        BinaryTree<T> result = new BinaryTree<>();
+        headSetBuilder(root, result, toElement);
+        return result;
+    }
 
+    private void headSetBuilder(Node<T> cur, BinaryTree<T> tree, T element) {
+        int compResult = cur.value.compareTo(element);
+        if (compResult <= 0) {
+            if (cur.left != null) {
+                copyTree(cur.left, tree);
+            }
+            if (compResult != 0) {
+                tree.add(cur.value);
+                if (cur.right != null) {
+                    headSetBuilder(cur.right, tree, element);
+                }
+            }
+        } else {
+            if (cur.left != null) {
+                headSetBuilder(cur.left, tree, element);
+            }
         }
-        throw new NotImplementedError();
+    }
+
+    private void copyTree(Node<T> node, BinaryTree<T> tree) {
+        tree.add(node.value);
+        if (node.left != null) {
+            copyTree(node.left, tree);
+        }
+        if (node.right != null) {
+            copyTree(node.right, tree);
+        }
     }
 
     /**
@@ -251,10 +277,28 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     @NotNull
     @Override
     public SortedSet<T> tailSet(T fromElement) {
-        // TODO
-        throw new NotImplementedError();
+        BinaryTree<T> result = new BinaryTree<>();
+        tailSetBuilder(root, result, fromElement);
+        return result;
     }
-
+    private void tailSetBuilder(Node<T> cur, BinaryTree<T> tree, T element) {
+        int compResult = cur.value.compareTo(element);
+        if (compResult >= 0) {
+            tree.add(cur.value);
+            if (cur.right != null) {
+                copyTree(cur.right, tree);
+            }
+            if (compResult != 0) {
+                if (cur.left != null) {
+                    tailSetBuilder(cur.left, tree, element);
+                }
+            }
+        } else {
+            if (cur.right != null) {
+                tailSetBuilder(cur.right, tree, element);
+            }
+        }
+    }
     @Override
     public T first() {
         if (root == null) throw new NoSuchElementException();
