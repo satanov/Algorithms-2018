@@ -10,6 +10,13 @@ import java.util.*;
 @SuppressWarnings("WeakerAccess")
 public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implements CheckableSortedSet<T> {
 
+    private List<BinaryTree<T>> childSets = new ArrayList<>();
+    private BinaryTree<T> parentSet;
+    private boolean hasParentSet = false;
+    private boolean isHeadSet = false;
+    private boolean isTailSet = false;
+    private T boundary;
+
     private static class Node<T> {
         final T value;
 
@@ -28,6 +35,19 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
 
     @Override
     public boolean add(T t) {
+        if (!childSets.isEmpty()) {
+            childSets.forEach(set -> {
+                if (set.boundary != null) {
+                    int res = set.boundary.compareTo(t);
+                    if (set.isTailSet && res <= 0 || set.isHeadSet && res >= 0) {
+                        set.add(t);
+                    }
+
+                }
+
+            });
+        }
+
         Node<T> closest = find(t);
         int comparison = closest == null ? -1 : t.compareTo(closest.value);
         if (comparison == 0) {
@@ -66,18 +86,38 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
      */
     @Override
     public boolean remove(Object o) {
+        if (!childSets.isEmpty()) {
+            childSets.forEach(set -> {
+                boolean parentSetValue = set.hasParentSet;
+                set.hasParentSet = false;
+                set.remove(o);
+                set.hasParentSet = parentSetValue;
+            });
+        }
+        if (hasParentSet) {
+            List<BinaryTree<T>> children = parentSet.childSets;
+            parentSet.childSets = new ArrayList<>();
+            parentSet.remove(o);
+            parentSet.childSets = children;
+        }
+
         T val = (T) o;
         if (isEmpty() || find(val) == null) {
             return false;
         }
         root = remove(root, val);
-        size--;
-        return true;
+        if (root != null) {
+            size--;
+            return true;
+        }
+        return false;
     }
 
-    private Node<T> remove(Node<T> cur, T val)
-    {
+    private Node<T> remove(Node<T> cur, T val) {
         Node<T> p, p2, n;
+        if (cur == null) {
+            return null;
+        }
         if (cur.value.compareTo(val) == 0)
         {
             Node<T> lt, rt;
@@ -238,6 +278,11 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     public SortedSet<T> headSet(T toElement) {
         BinaryTree<T> result = new BinaryTree<>();
         headSetBuilder(root, result, toElement);
+        this.childSets.add(result);
+        result.parentSet = this;
+        result.hasParentSet = true;
+        result.isHeadSet = true;
+        result.boundary = toElement;
         return result;
     }
 
@@ -279,8 +324,14 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
     public SortedSet<T> tailSet(T fromElement) {
         BinaryTree<T> result = new BinaryTree<>();
         tailSetBuilder(root, result, fromElement);
+        this.childSets.add(result);
+        result.parentSet = this;
+        result.hasParentSet = true;
+        result.isTailSet = true;
+        result.boundary = fromElement;
         return result;
     }
+
     private void tailSetBuilder(Node<T> cur, BinaryTree<T> tree, T element) {
         int compResult = cur.value.compareTo(element);
         if (compResult >= 0) {
@@ -299,6 +350,7 @@ public class BinaryTree<T extends Comparable<T>> extends AbstractSet<T> implemen
             }
         }
     }
+
     @Override
     public T first() {
         if (root == null) throw new NoSuchElementException();
